@@ -1,45 +1,50 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { FiArrowRight, FiClock } from 'react-icons/fi';
-import useAnalyse from '../hooks/useAnalyse';
-import { RECENT_SEARCHES_KEY } from '../utils/constants';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { FiArrowRight, FiClock } from "react-icons/fi";
+import useAnalyse from "../hooks/useAnalyse";
+import { RECENT_SEARCHES_KEY } from "../utils/constants";
 
 const FIELDS = [
-  { key: 'leetcode', label: 'LeetCode username' },
-  { key: 'github', label: 'GitHub username' },
-  { key: 'gfg', label: 'GeeksForGeeks username' },
-  { key: 'hackerrank', label: 'HackerRank username' },
-  { key: 'codechef', label: 'CodeChef username (coming soon)', disabled: true }
+  { key: "leetcode", label: "LeetCode username" },
+  { key: "github", label: "GitHub username" },
+  { key: "gfg", label: "GeeksForGeeks username (coming soon)", disabled: true },
+  {
+    key: "hackerrank",
+    label: "HackerRank username (coming soon)",
+    disabled: true,
+  },
+  { key: "codechef", label: "CodeChef username (coming soon)", disabled: true },
 ];
 
 export default function Home() {
   const navigate = useNavigate();
   const { analyse, loading } = useAnalyse();
   const [usernames, setUsernames] = useState({
-    leetcode: '',
-    github: '',
-    gfg: '',
-    hackerrank: '',
-    codechef: ''
+    leetcode: "",
+    github: "",
+    gfg: "",
+    hackerrank: "",
+    codechef: "",
   });
   const [recent, setRecent] = useState([]);
 
   useEffect(() => {
     try {
-      setRecent(JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]'));
+      setRecent(JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || "[]"));
     } catch {
       setRecent([]);
     }
   }, []);
 
-  const handleChange = (key) => (e) => setUsernames((prev) => ({ ...prev, [key]: e.target.value }));
+  const handleChange = (key) => (e) =>
+    setUsernames((prev) => ({ ...prev, [key]: e.target.value }));
 
   const handleAnalyse = async () => {
     const result = await analyse(usernames);
     if (result) {
-      sessionStorage.setItem('cpa_last_result', JSON.stringify(result));
-      navigate('/results');
+      sessionStorage.setItem("cpa_last_result", JSON.stringify(result));
+      navigate("/results");
     }
   };
 
@@ -63,8 +68,9 @@ export default function Home() {
           Analyse Your Coding Journey
         </h1>
         <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-          Pull your public stats from LeetCode, GitHub, GeeksForGeeks and HackerRank into one
-          dashboard — with a single score that reflects your all-round strength.
+          Pull your public stats from LeetCode, GitHub, GeeksForGeeks and
+          HackerRank into one dashboard — with a single score that reflects your
+          all-round strength.
         </p>
       </motion.div>
 
@@ -76,10 +82,14 @@ export default function Home() {
       >
         {FIELDS.map((f) => (
           <div key={f.key}>
-            <label className="text-xs text-slate-500 mb-1.5 block">{f.label}</label>
+            <label className="text-xs text-slate-500 mb-1.5 block">
+              {f.label}
+            </label>
             <input
               className="input-field"
-              placeholder={f.disabled ? 'Coming in a future release' : 'e.g. torvalds'}
+              placeholder={
+                f.disabled ? "Coming in a future release" : "e.g. torvalds"
+              }
               value={usernames[f.key]}
               onChange={handleChange(f.key)}
               disabled={f.disabled}
@@ -87,7 +97,11 @@ export default function Home() {
           </div>
         ))}
 
-        <button onClick={handleAnalyse} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 mt-2">
+        <button
+          onClick={handleAnalyse}
+          disabled={loading}
+          className="btn-primary w-full flex items-center justify-center gap-2 mt-2"
+        >
           {loading ? (
             <span className="font-stat text-sm">analysing…</span>
           ) : (
@@ -106,7 +120,12 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-2">
             {recent.map((entry, i) => {
-              const label = entry.leetcode || entry.github || entry.gfg || entry.hackerrank || 'search';
+              const label =
+                entry.leetcode ||
+                entry.github ||
+                entry.gfg ||
+                entry.hackerrank ||
+                "search";
               return (
                 <button
                   key={i}
