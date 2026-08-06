@@ -1,14 +1,15 @@
-import { motion } from 'framer-motion';
-import { FiCode } from 'react-icons/fi';
-import DonutChart from '../Charts/DonutChart';
-import StatBadge from '../UI/StatBadge';
-import ErrorCard from '../UI/ErrorCard';
-import { PlatformCardSkeleton } from '../UI/LoadingSkeleton';
+import { motion } from "framer-motion";
+import { FiCode } from "react-icons/fi";
+import DonutChart from "../Charts/DonutChart";
+import StatBadge from "../UI/StatBadge";
+import ErrorCard from "../UI/ErrorCard";
+import { PlatformCardSkeleton } from "../UI/LoadingSkeleton";
 
 export default function LeetCodeCard({ result, loading }) {
   if (loading) return <PlatformCardSkeleton />;
   if (!result) return null;
-  if (result.error) return <ErrorCard title="LeetCode" message={result.error} />;
+  if (result.error)
+    return <ErrorCard title="LeetCode" message={result.error} />;
 
   const d = result.data;
 
@@ -32,12 +33,36 @@ export default function LeetCodeCard({ result, loading }) {
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4">
-        <DonutChart easy={d.easySolved} medium={d.mediumSolved} hard={d.hardSolved} />
+        <DonutChart
+          easy={d.easySolved}
+          medium={d.mediumSolved}
+          hard={d.hardSolved}
+        />
         <div className="grid grid-cols-2 gap-2 w-full">
-          <StatBadge label="Acceptance" value={`${d.acceptanceRate?.toFixed?.(1) ?? d.acceptanceRate}%`} color="#F2B705" />
-          <StatBadge label="Global rank" value={d.ranking ? `#${d.ranking.toLocaleString()}` : '—'} color="#8B7FD1" />
-          <StatBadge label="Contest rating" value={d.contestRating ?? 'N/A'} color="#2DD4BF" />
-          <StatBadge label="Top %" value={d.topPercentage ? `${d.topPercentage}%` : '—'} color="#F0654F" />
+          <StatBadge
+            label="Acceptance"
+            value={
+              d.acceptanceRate !== null && d.acceptanceRate !== undefined
+                ? `${d.acceptanceRate}%`
+                : "N/A"
+            }
+            color="#F2B705"
+          />
+          <StatBadge
+            label="Global rank"
+            value={d.ranking ? `#${d.ranking.toLocaleString()}` : "—"}
+            color="#8B7FD1"
+          />
+          <StatBadge
+            label="Contest rating"
+            value={d.contestRating ?? "N/A"}
+            color="#2DD4BF"
+          />
+          <StatBadge
+            label="Top %"
+            value={d.topPercentage ? `${d.topPercentage}%` : "—"}
+            color="#F0654F"
+          />
         </div>
       </div>
     </motion.div>

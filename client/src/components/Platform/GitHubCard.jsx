@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion';
-import { FiGithub, FiStar, FiUsers } from 'react-icons/fi';
-import LanguageChart from '../Charts/LanguageChart';
-import HeatMap from '../Charts/HeatMap';
-import StatBadge from '../UI/StatBadge';
-import ErrorCard from '../UI/ErrorCard';
-import { PlatformCardSkeleton } from '../UI/LoadingSkeleton';
+import { motion } from "framer-motion";
+import { FiGithub, FiStar, FiUsers } from "react-icons/fi";
+import LanguageChart from "../Charts/LanguageChart";
+import HeatMap from "../Charts/HeatMap";
+import StatBadge from "../UI/StatBadge";
+import ErrorCard from "../UI/ErrorCard";
+import { PlatformCardSkeleton } from "../UI/LoadingSkeleton";
 
 export default function GitHubCard({ result, loading }) {
   if (loading) return <PlatformCardSkeleton />;
@@ -33,14 +33,33 @@ export default function GitHubCard({ result, loading }) {
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-4">
-        <StatBadge icon={FiGithub} label="Repos" value={d.publicRepos} color="#8B7FD1" />
-        <StatBadge icon={FiStar} label="Stars" value={d.totalStars} color="#F2B705" />
-        <StatBadge icon={FiUsers} label="Followers" value={d.followers} color="#2DD4BF" />
+        <StatBadge
+          icon={FiGithub}
+          label="Repos"
+          value={d.publicRepos}
+          color="#8B7FD1"
+        />
+        <StatBadge
+          icon={FiStar}
+          label="Stars"
+          value={d.totalStars}
+          color="#F2B705"
+        />
+        <StatBadge
+          icon={FiUsers}
+          label="Followers"
+          value={d.followers}
+          color="#2DD4BF"
+        />
       </div>
 
       <LanguageChart languages={d.topLanguages} />
       <div className="mt-3">
-        <HeatMap activeDays={d.contributionStreakDays} />
+        <HeatMap
+          days={d.contributionCalendar}
+          totalLastYear={d.contributionsLastYear}
+          activeDaysLast30={d.contributionStreakDays}
+        />
       </div>
     </motion.div>
   );

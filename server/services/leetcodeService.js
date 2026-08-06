@@ -22,45 +22,79 @@ async function fetchFromCommunityApi(username, retries = 2) {
   return null;
 }
 
-// Fallback: query LeetCode's own public GraphQL endpoint directly.
+// Fallback: query LeetCode's own official GraphQL endpoint directly.
+// Pulls solved counts, total question counts, acceptance rate, ranking, and
+// contest rating in one request so this fallback path returns data as
+// complete as the community API does.
 async function fetchFromOfficialGraphQL(username) {
   const query = `
-    query userProblemsSolved($username: String!) {
+    query combinedQuery($username: String!) {
+      allQuestionsCount { difficulty count }
       matchedUser(username: $username) {
         username
-        submitStatsGlobal { acSubmissionNum { difficulty count } }
+        submitStatsGlobal {
+          acSubmissionNum { difficulty count }
+          totalSubmissionNum { difficulty count }
+        }
         profile { ranking }
       }
+      userContestRanking(username: $username) { rating }
     }
   `;
+
   const { data } = await axios.post(
     GRAPHQL_URL,
     { query, variables: { username } },
-    { timeout: 8000, headers: { "Content-Type": "application/json" } },
+    {
+      timeout: 8000,
+      headers: {
+        "Content-Type": "application/json",
+        Referer: `https://leetcode.com/${username}/`,
+      },
+    },
   );
 
   const user = data?.data?.matchedUser;
   if (!user) return null;
 
-  const counts = {};
+  const acByDifficulty = {};
   user.submitStatsGlobal.acSubmissionNum.forEach((s) => {
-    counts[s.difficulty] = s.count;
+    acByDifficulty[s.difficulty] = s.count;
   });
 
+  const totalByDifficulty = {};
+  user.submitStatsGlobal.totalSubmissionNum.forEach((s) => {
+    totalByDifficulty[s.difficulty] = s.count;
+  });
+
+  const totalQuestionsByDifficulty = {};
+  (data?.data?.allQuestionsCount || []).forEach((q) => {
+    totalQuestionsByDifficulty[q.difficulty] = q.count;
+  });
+
+  const acAll = acByDifficulty.All ?? 0;
+  const totalAll = totalByDifficulty.All ?? 0;
+  const acceptanceRate =
+    totalAll > 0 ? Math.round((acAll / totalAll) * 1000) / 10 : null;
+
+  const contestRating = data?.data?.userContestRanking?.rating
+    ? Math.round(data.data.userContestRanking.rating)
+    : null;
+
   return {
-    totalSolved: counts.All ?? 0,
-    easySolved: counts.Easy ?? 0,
-    mediumSolved: counts.Medium ?? 0,
-    hardSolved: counts.Hard ?? 0,
-    totalEasy: null,
-    totalMedium: null,
-    totalHard: null,
-    totalQuestions: null,
-    acceptanceRate: null,
+    totalSolved: acAll,
+    totalQuestions: totalQuestionsByDifficulty.All ?? null,
+    easySolved: acByDifficulty.Easy ?? 0,
+    totalEasy: totalQuestionsByDifficulty.Easy ?? null,
+    mediumSolved: acByDifficulty.Medium ?? 0,
+    totalMedium: totalQuestionsByDifficulty.Medium ?? null,
+    hardSolved: acByDifficulty.Hard ?? 0,
+    totalHard: totalQuestionsByDifficulty.Hard ?? null,
+    acceptanceRate,
     ranking: user.profile?.ranking ?? null,
     contributionPoints: 0,
     reputation: 0,
-    contestRating: null,
+    contestRating,
   };
 }
 
@@ -93,14 +127,15 @@ async function fetchLeetCodeStats(username) {
   return {
     username,
     totalSolved: data.totalSolved ?? 0,
-    totalQuestions: data.totalQuestions ?? 0,
+    totalQuestions: data.totalQuestions ?? null,
     easySolved: data.easySolved ?? 0,
-    totalEasy: data.totalEasy ?? 0,
+    totalEasy: data.totalEasy ?? null,
     mediumSolved: data.mediumSolved ?? 0,
-    totalMedium: data.totalMedium ?? 0,
+    totalMedium: data.totalMedium ?? null,
     hardSolved: data.hardSolved ?? 0,
-    totalHard: data.totalHard ?? 0,
-    acceptanceRate: data.acceptanceRate ?? 0,
+    totalHard: data.totalHard ?? null,
+    // Keep null when truly unknown so the UI shows "N/A" instead of a misleading "0.0%"
+    acceptanceRate: data.acceptanceRate ?? null,
     ranking: data.ranking ?? null,
     contributionPoints: data.contributionPoints ?? 0,
     reputation: data.reputation ?? 0,
