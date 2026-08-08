@@ -1,0 +1,279 @@
+================================================================
+  REQUIREMENTS GATHERING DOCUMENT
+  Project  : Coding Profile Analyser
+  Author   : Hruthik
+  Version  : 1.0
+  Date     : August 2026
+================================================================
+
+----------------------------------------------------------------
+SECTION 1 — PROJECT OVERVIEW
+----------------------------------------------------------------
+
+Project Name     : Coding Profile Analyser
+Project Type     : Full Stack Web Application (MERN)
+Developer        : Hruthik
+Technology Stack : MongoDB, Express.js, React.js (Vite), Node.js,
+                   Tailwind CSS, Recharts, Framer Motion,
+                   React Hot Toast, Axios, Mongoose, node-cache
+Deployment       : Vercel (frontend) + Render (backend)
+                   + MongoDB Atlas (database)
+Purpose          : To pull public coding stats from multiple
+                   platforms into one dashboard with a single
+                   weighted score, and to demonstrate real-world
+                   MERN skills (API integration, caching, auth-
+                   free public data fetching, deployment) for a
+                   portfolio.
+
+----------------------------------------------------------------
+SECTION 2 — STAKEHOLDER INFORMATION
+----------------------------------------------------------------
+
+Stakeholder      : Hruthik
+End Users        : Students / developers who want to track their
+                   own coding progress across platforms, or
+                   compare themselves with friends
+Goal             : Show employers/clients a production-quality
+                   full-stack project involving real third-party
+                   API integration, MongoDB data modelling, and
+                   a live deployed demo
+
+----------------------------------------------------------------
+SECTION 3 — FUNCTIONAL REQUIREMENTS
+----------------------------------------------------------------
+
+FR-01  HOME PAGE — PROFILE INPUT
+  FR-01.1  Input field for LeetCode username
+  FR-01.2  Input field for GitHub username
+  FR-01.3  Input field for GeeksForGeeks username
+  FR-01.4  Input field for HackerRank username
+  FR-01.5  Input field for CodeChef username (reserved, disabled
+            for future release)
+  FR-01.6  Single "Analyse" button triggers all platform fetches
+  FR-01.7  Loading state shown while fetching
+  FR-01.8  Recent searches list shown below the form, re-runnable
+            with one click
+
+FR-02  ANALYSE / DATA FETCH
+  FR-02.1  POST /api/analyse/leetcode fetches LeetCode stats
+  FR-02.2  POST /api/analyse/github fetches GitHub stats
+  FR-02.3  POST /api/analyse/gfg fetches GeeksForGeeks stats
+  FR-02.4  POST /api/analyse/hackerrank fetches HackerRank stats
+  FR-02.5  POST /api/analyse/all fetches all four platforms in
+            parallel and returns a combined result
+  FR-02.6  Each platform failure is isolated — one platform
+            failing does not block the other platforms' results
+  FR-02.7  Each response includes a cached flag and cachedAt
+            timestamp
+
+FR-03  LEETCODE DATA
+  FR-03.1  Total problems solved
+  FR-03.2  Easy / Medium / Hard solved counts
+  FR-03.3  Acceptance rate
+  FR-03.4  Global ranking
+  FR-03.5  Contest rating (where available)
+  FR-03.6  Estimated top percentage
+  FR-03.7  Falls back to LeetCode's own GraphQL endpoint if the
+            community stats API is unavailable
+
+FR-04  GITHUB DATA
+  FR-04.1  Public repository count
+  FR-04.2  Followers / following count
+  FR-04.3  Total stars across repositories
+  FR-04.4  Top languages used (from most recently pushed repos)
+  FR-04.5  Real contribution calendar (last 30 days, scraped
+            from GitHub's public contribution graph)
+  FR-04.6  Total contributions in the last year
+
+FR-05  GEEKSFORGEEKS DATA
+  FR-05.1  Coding score
+  FR-05.2  Problems solved
+  FR-05.3  Institute rank (where available)
+  FR-05.4  Current streak
+
+FR-06  HACKERRANK DATA
+  FR-06.1  Badges earned (list + count)
+  FR-06.2  Certifications (list + count)
+  FR-06.3  Problem solving score (derived)
+
+FR-07  OVERALL SCORE
+  FR-07.1  Weighted score out of 100 combining all four platforms
+            (LeetCode 40%, GitHub 30%, GFG 20%, HackerRank 10%)
+  FR-07.2  Per-platform breakdown shown as progress bars
+  FR-07.3  Score displayed as an animated circular gauge
+
+FR-08  STRENGTHS / WEAKNESSES / SUGGESTIONS
+  FR-08.1  Auto-derived list of strengths (e.g. languages,
+            algorithmic ability)
+  FR-08.2  Auto-derived list of weaknesses
+  FR-08.3  Actionable improvement suggestions list
+
+FR-09  RESULTS DASHBOARD
+  FR-09.1  Overall score gauge + breakdown bars
+  FR-09.2  LeetCode card with Easy/Medium/Hard donut chart
+  FR-09.3  GitHub card with language pie chart + contribution
+            heatmap
+  FR-09.4  GFG card with score/rank/streak stat badges
+  FR-09.5  HackerRank card with badges and certifications
+  FR-09.6  Save-profile form (name input + Save button)
+  FR-09.7  Loading skeletons shown while cards are fetching
+  FR-09.8  Error card shown per-platform on fetch failure
+
+FR-10  SAVED PROFILES
+  FR-10.1  POST /api/profiles/save stores a named profile snapshot
+  FR-10.2  GET /api/profiles lists all saved profiles
+  FR-10.3  GET /api/profiles/:id retrieves one profile
+  FR-10.4  DELETE /api/profiles/:id removes a profile
+  FR-10.5  Grid view of saved profiles with mini score gauge
+  FR-10.6  View button re-opens a saved profile in Results
+  FR-10.7  Delete button removes a profile with confirmation
+            via toast
+
+FR-11  COMPARE PAGE
+  FR-11.1  Select two saved profiles from dropdowns
+  FR-11.2  GET /api/stats/compare returns category-by-category
+            comparison
+  FR-11.3  Winner marked per category (LeetCode solved, GitHub
+            stars, GitHub repos, GFG score, HackerRank badges)
+  FR-11.4  Overall winner card based on total score
+
+FR-12  LEADERBOARD PAGE
+  FR-12.1  GET /api/stats/leaderboard returns saved profiles
+            sorted by overall score, descending
+  FR-12.2  Top 3 shown with rank badge icons
+  FR-12.3  Per-platform ranking lists (LeetCode, GitHub)
+
+FR-13  CACHING
+  FR-13.1  All platform fetches cached in-memory (node-cache)
+            for 1 hour per platform+username key
+  FR-13.2  Cached responses marked and timestamped for the UI
+
+----------------------------------------------------------------
+SECTION 4 — NON-FUNCTIONAL REQUIREMENTS
+----------------------------------------------------------------
+
+NFR-01  PERFORMANCE
+  NFR-01.1  Cached platform lookups return in under 200ms
+  NFR-01.2  Uncached lookups return in under 8 seconds per
+             platform (fetch timeout enforced)
+  NFR-01.3  All four platforms fetched in parallel, not serially
+
+NFR-02  RESPONSIVENESS
+  NFR-02.1  Mobile-first design (works on 375px screens)
+  NFR-02.2  Dashboard cards stack to a single column below md
+             breakpoint
+  NFR-02.3  Full 2-column card grid on md screens and above
+
+NFR-03  USABILITY
+  NFR-03.1  Dark "coding vibe" theme by default
+  NFR-03.2  Toast notifications for all user actions and errors
+  NFR-03.3  Loading skeletons shown during data fetches
+  NFR-03.4  Empty states shown when no saved profiles exist
+
+NFR-04  RELIABILITY / GRACEFUL DEGRADATION
+  NFR-04.1  A single platform failing (GFG / HackerRank have no
+             official public APIs) must not break the other
+             platforms' results
+  NFR-04.2  LeetCode has two data sources with automatic fallback
+  NFR-04.3  Backend returns clear, actionable error messages per
+             platform (private profile / not found / blocked)
+
+NFR-05  DATA PERSISTENCE
+  NFR-05.1  Saved profiles persisted in MongoDB (Atlas in
+             production, local MongoDB in development)
+  NFR-05.2  Search history logged server-side for auditability
+
+NFR-06  BROWSER SUPPORT
+  NFR-06.1  Chrome 90+ (primary target)
+  NFR-06.2  Firefox 88+
+  NFR-06.3  Edge 90+
+
+----------------------------------------------------------------
+SECTION 5 — CONSTRAINTS & ASSUMPTIONS
+----------------------------------------------------------------
+
+CONSTRAINTS
+  - No authentication / login system (public usernames only,
+    no per-user accounts in this version)
+  - GeeksForGeeks and HackerRank have no official public APIs;
+    data comes from unofficial community APIs and HTML scraping,
+    which may break if those sites change their markup
+  - LeetCode's free community stats API (Heroku-hosted) is not
+    guaranteed to be always available
+  - GitHub's REST API is rate-limited to 60 requests/hour without
+    a personal access token
+  - Render's free tier spins down after inactivity, causing a
+    30-50 second delay on the first request after idle time
+
+ASSUMPTIONS
+  - Users provide real, public usernames that exist on each
+    platform
+  - Users have a stable internet connection
+  - Project is for portfolio/demo purposes, not production scale
+  - Profile data is public and does not require the platform
+    owner's explicit consent to fetch
+
+----------------------------------------------------------------
+SECTION 6 — OUT OF SCOPE
+----------------------------------------------------------------
+
+  - User authentication / login accounts
+  - CodeChef integration (input field reserved, not implemented)
+  - Editing a saved profile after creation
+  - Real-time / live-updating dashboards (WebSockets)
+  - Email or push notifications
+  - Payment systems
+  - Multi-language support (i18n)
+  - Mobile native app (web-responsive only)
+
+----------------------------------------------------------------
+SECTION 7 — DEPENDENCIES
+----------------------------------------------------------------
+
+BACKEND (server/)
+Package              Version    Purpose
+-------------------  ---------  --------------------------------
+express              ^4.19.2    Web server framework
+mongoose             ^8.6.0     MongoDB ODM
+dotenv               ^16.4.5    Environment variable loading
+cors                 ^2.8.5     Cross-origin request handling
+helmet               ^7.1.0     HTTP security headers
+morgan               ^1.10.0    Request logging
+axios                ^1.7.7     HTTP client for platform APIs
+cheerio               ^1.0.0    HTML parsing for scraping
+node-cache            ^5.1.2    In-memory caching (1 hour TTL)
+nodemon (dev)         ^3.1.4    Auto-restart during development
+
+FRONTEND (client/)
+Package                Version   Purpose
+---------------------  --------  --------------------------------
+react                  ^18.3.1   Core UI framework
+react-dom              ^18.3.1   DOM rendering
+vite                   ^5.4.3    Build tool and dev server
+react-router-dom       ^6.26.2   Client-side routing
+tailwindcss            ^3.4.10   Utility-first CSS
+recharts               ^2.12.7   Donut / pie charts
+framer-motion          ^11.5.4   Card and gauge animations
+react-hot-toast        ^2.4.1    Toast notifications
+react-icons            ^5.3.0    Icon set
+react-loading-skeleton ^3.4.0    Loading placeholders
+axios                  ^1.7.7    HTTP client for backend calls
+
+----------------------------------------------------------------
+SECTION 8 — GLOSSARY
+----------------------------------------------------------------
+
+Platform    : One of LeetCode, GitHub, GeeksForGeeks, HackerRank
+Overall Score: Weighted 0-100 score combining all four platforms
+Cache hit   : A platform response served from memory instead of
+              re-fetching from the source site
+Scraping    : Extracting data from a public HTML page when no
+              official API exists (used for GFG and HackerRank)
+Saved profile: A named snapshot of a user's analysed stats,
+              stored in MongoDB for later comparison/leaderboard
+node-cache  : In-memory key-value cache used to avoid re-hitting
+              external platform APIs too frequently
+
+================================================================
+END OF REQUIREMENTS GATHERING DOCUMENT
+================================================================

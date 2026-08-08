@@ -1,0 +1,281 @@
+================================================================
+  PAPER DESIGN — WIREFRAMES (ASCII)
+  Project  : Coding Profile Analyser
+  Author   : Hruthik
+  Note     : Draw these on paper using these as reference.
+              Each box = a UI element. [] = button, {} = input
+================================================================
+
+----------------------------------------------------------------
+SCREEN 1 — HOME PAGE (INPUT FORM)
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  >_ code_analyser   Home  Results  Compare  Saved  Leaderb. |  ← navbar
++------------------------------------------------------------+
+|                                                              |
+|              $ analyse --profile   ← small amber label       |
+|                                                              |
+|            Analyse Your Coding Journey    ← big heading      |
+|                                                              |
+|   Pull your public stats from LeetCode, GitHub, GFG and      |
+|   HackerRank into one dashboard — with a single score.       |
+|                                                              |
+|   +--------------------------------------------------+     |
+|   |  LeetCode username                                |     |
+|   |  {  e.g. torvalds                              }  |     |
+|   |                                                    |     |
+|   |  GitHub username                                  |     |
+|   |  {  e.g. torvalds                              }  |     |
+|   |                                                    |     |
+|   |  GeeksForGeeks username                           |     |
+|   |  {  e.g. torvalds                              }  |     |
+|   |                                                    |     |
+|   |  HackerRank username                              |     |
+|   |  {  e.g. torvalds                              }  |     |
+|   |                                                    |     |
+|   |  CodeChef username (coming soon)   ← greyed out   |     |
+|   |  {  Coming in a future release                 }  |     |
+|   |                                                    |     |
+|   |           [        Analyse  →        ]  ← amber   |     |
+|   +--------------------------------------------------+     |
+|                                                              |
+|   🕐 Recent searches                                        |
+|   [torvalds]  [neetcode]  [lee215]   ← pill buttons          |
+|                                                              |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Background: deep navy/charcoal (#0B1220)
+- Accent colour: amber/gold for buttons and headings
+- Input boxes: dark background, subtle border, amber glow on focus
+- Analyse button: full width, amber, pill/rounded corners
+- Recent search pills: dark rounded chips below the form
+
+
+----------------------------------------------------------------
+SCREEN 2 — RESULTS DASHBOARD
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  >_ code_analyser   Home  [Results] Compare  Saved  Leaderb.|
++------------------------------------------------------------+
+|  +--------------------+  Overall Score Breakdown            |
+|  |   (circular gauge) |  LeetCode   [=========    ] 78      |
+|  |        78          |  GitHub     [======       ] 60      |
+|  |      / 100          |  GFG        [====         ] 40      |
+|  |     "Strong"        |  HackerRank [==           ] 20      |
+|  +--------------------+                                     |
+|                          { Name this profile } [Save profile]|
++------------------------------------------------------------+
+|  +----------------------+   +----------------------+        |
+|  | <> LeetCode           |   | () GitHub             |        |
+|  |                        |   |                        |        |
+|  |  (donut chart)         |   | [Repos][Stars][Follow] |        |
+|  |  Easy/Med/Hard         |   |                        |        |
+|  |                        |   | (language pie chart)   |        |
+|  | [Accept%][Rank]        |   |                        |        |
+|  | [Contest][Top%]        |   | (contribution heatmap) |        |
+|  +----------------------+   +----------------------+        |
+|  +----------------------+   +----------------------+        |
+|  | () GeeksForGeeks       |   | (*) HackerRank         |        |
+|  |                        |   |                        |        |
+|  | [Score][Solved]        |   | Badges: [pill][pill]   |        |
+|  | [Rank][Streak]         |   | Certifications: list   |        |
+|  +----------------------+   +----------------------+        |
++------------------------------------------------------------+
+|  +----------------------+   +----------------------+        |
+|  | Strong in:             |   | Improvement            |        |
+|  | [Java][SQL][Algo]       |   |  suggestions           |        |
+|  |                        |   | 01 Solve more Hard...  |        |
+|  | Needs work:             |   | 02 Push more repos...  |        |
+|  | [Hard problems]         |   | 03 Try more contests   |        |
+|  +----------------------+   +----------------------+        |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Score gauge: circular SVG progress ring, animates on load
+- Platform cards: dark card with subtle border, 2-column grid
+- "cached · <time>" small grey label top-right of a card when
+  data came from cache instead of a fresh fetch
+- Error state: red-tinted card with warning icon + retry button
+
+
+----------------------------------------------------------------
+SCREEN 3 — COMPARE PAGE
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  Compare Profiles                                            |
+|  Pick two saved profiles to see a category-by-category       |
+|  breakdown.                                                   |
++------------------------------------------------------------+
+|  { Select profile 1  v }    { Select profile 2  v }          |
+|                                                                |
+|  [        Compare        ]                                   |
++------------------------------------------------------------+
+|  (gauge) Name A     Overall winner: Name A     (gauge) Name B|
++------------------------------------------------------------+
+|  Name A      |        Category           |      Name B      |
+|  ----------------------------------------------------------- |
+|  245 🏆       |  LeetCode Problems Solved  |       190        |
+|  12          |  GitHub Stars              |       28 🏆      |
+|  18          |  GitHub Repos              |       9          |
+|  310 🏆       |  GFG Coding Score          |       120        |
+|  4           |  HackerRank Badges         |       6 🏆       |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Winner cell: amber bold text + trophy emoji
+- Middle column: category label, centered, muted grey text
+- Table rows separated by thin dark divider lines
+
+
+----------------------------------------------------------------
+SCREEN 4 — SAVED PROFILES PAGE
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  Saved Profiles                                               |
+|  4 profiles saved                                              |
++------------------------------------------------------------+
+|  +----------------+  +----------------+  +----------------+ |
+|  |   Hruthik       |  |   Friend A     |  |   Friend B     | |
+|  |  Saved 06 Aug   |  |  Saved 05 Aug   |  |  Saved 01 Aug   | |
+|  |                 |  |                 |  |                 | |
+|  |  (mini gauge)   |  |  (mini gauge)   |  |  (mini gauge)   | |
+|  |      78         |  |      65         |  |      52         | |
+|  |                 |  |                 |  |                 | |
+|  | [View] [Delete] |  | [View] [Delete] |  | [View] [Delete] | |
+|  +----------------+  +----------------+  +----------------+ |
++------------------------------------------------------------+
+
+EMPTY STATE:
++------------------------------------------------------------+
+|                                                                |
+|      No saved profiles yet. Analyse a profile from Home       |
+|      and save it.                                             |
+|                                                                |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Card grid: 1 column mobile, 2 tablet, 3 desktop
+- Delete button turns red border/text on hover
+- View button navigates back into the Results dashboard
+
+
+----------------------------------------------------------------
+SCREEN 5 — LEADERBOARD PAGE
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  Leaderboard                                                  |
+|  Top saved profiles by overall score.                          |
++------------------------------------------------------------+
+|  🏆(gold)  Hruthik            LC 245 solved · GH 12★    92   |
+|  ------------------------------------------------------------|
+|  🏆(silver) Friend A          LC 190 solved · GH 28★    81   |
+|  ------------------------------------------------------------|
+|  🏆(bronze) Friend B          LC 88  solved · GH 4★     55   |
+|  ------------------------------------------------------------|
+|   4         Friend C          LC 40  solved · GH 1★     30   |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Top 3 rows: trophy icon coloured gold / silver / bronze
+- Rows 4+: plain rank number, monospace font
+- Score right-aligned, bold amber text
+
+
+----------------------------------------------------------------
+NAVBAR (all pages)
+----------------------------------------------------------------
+
++------------------------------------------------------------+
+|  >_ code_analyser     Home   Results   Compare   Saved   Leaderboard |
++------------------------------------------------------------+
+
+NOTES FOR PAPER SKETCH:
+- Sticky top bar, dark background with subtle blur
+- Active page link highlighted amber with soft background pill
+- Terminal-style logo (>_ prompt icon + monospace text)
+
+
+----------------------------------------------------------------
+MOBILE LAYOUT (375px width)
+----------------------------------------------------------------
+
+MOBILE HOME:
++---------------------+
+|  >_ code_analyser  ☰| ← hamburger / collapsed nav
++---------------------+
+|  $ analyse --profile |
+|  Analyse Your Coding |
+|  Journey              |
++---------------------+
+|  { LeetCode user  }  |
+|  { GitHub user    }  |
+|  { GFG user       }  |
+|  { HackerRank user}  |
+|  [   Analyse  →   ]  |
++---------------------+
+| 🕐 Recent searches   |
+| [pill] [pill]        |
++---------------------+
+
+MOBILE RESULTS:
++---------------------+
+| (gauge)  78/100      |
+| Strong               |
++---------------------+
+| [LeetCode card]      |
++---------------------+
+| [GitHub card]        |
++---------------------+
+| [GFG card]           |
++---------------------+
+| [HackerRank card]    |
++---------------------+
+| [Strengths card]     |
++---------------------+
+| [Suggestions card]   |
++---------------------+
+
+MOBILE NOTE:
+- Nav links collapse; only logo shown on very small screens
+- All platform cards stack to a single column
+- Score gauge and breakdown bars stack vertically instead of
+  side-by-side
+
+
+================================================================
+PAPER DRAWING TIPS
+================================================================
+
+When drawing on paper:
+
+1. Use a ruler for clean boxes
+2. Draw outer page boundary first
+3. Fill sections top → bottom
+4. Use different pen colors:
+   - Black pen: layout boxes and text
+   - Amber/yellow pen: interactive elements (buttons, links,
+     score numbers)
+   - Red pen: error states and failed-fetch cards
+   - Pencil: notes and annotations
+
+5. Mark dimensions roughly:
+   - Navbar: full width, ~60px tall
+   - Platform card grid: 2 columns desktop, 1 column mobile
+   - Score gauge: roughly 160px diameter circle
+
+6. Use these symbols consistently:
+   [  ] = button
+   {  } = input / select dropdown
+   (  ) = chart / gauge / icon
+   🏆   = rank / winner marker
+   ←   = annotation arrow
+
+================================================================
+END OF PAPER DESIGN DOCUMENT
+================================================================

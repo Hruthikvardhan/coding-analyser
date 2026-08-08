@@ -1,0 +1,488 @@
+================================================================
+  SPRINT PLAN
+  Project  : Coding Profile Analyser
+  Author   : Hruthik
+  Total    : 5 Sprints  |  ~10 Days  |  Solo Dev
+  Format   : Each sprint = 2 days approx
+================================================================
+
+SPRINT OVERVIEW
+---------------
+  Sprint 1  →  Backend Setup + Models + Platform Services
+  Sprint 2  →  Controllers + Routes + Caching + Score Engine
+  Sprint 3  →  Frontend Setup + Home Page + Results Dashboard
+  Sprint 4  →  Compare + Saved Profiles + Leaderboard Pages
+  Sprint 5  →  Polish + Testing + Deployment (Vercel/Render/Atlas)
+
+PRIORITY SCALE
+  [P1] Must have — core feature, blocks other work
+  [P2] Should have — important for completeness
+  [P3] Nice to have — polish, can defer if short on time
+
+STATUS OPTIONS
+  [ ] Not started
+  [~] In progress
+  [x] Done
+  [!] Blocked
+
+================================================================
+SPRINT 1 — BACKEND SETUP + MODELS + PLATFORM SERVICES
+Duration : Day 1–2
+Goal     : Express server runs, connects to MongoDB, and can
+           fetch real data from LeetCode + GitHub
+================================================================
+
+TASK-001  Initialize Node/Express project                [P1] [ ]
+  - npm init in server/ folder
+  - npm install express mongoose dotenv cors helmet morgan
+  - npm install axios cheerio node-cache
+  - npm install -D nodemon
+  - Verify: npm run dev starts server without errors
+  Estimated time: 20 min
+
+TASK-002  Create folder structure                        [P1] [ ]
+  Create these folders under server/:
+  - models/  controllers/  routes/  services/
+  - middleware/  config/
+  Estimated time: 5 min
+
+TASK-003  Create config/database.js                      [P1] [ ]
+  - mongoose.connect() using MONGO_URI from .env
+  - Log connection success/failure clearly
+  - Exit process on connection failure
+  Estimated time: 15 min
+
+TASK-004  Create .env.example                            [P1] [ ]
+  - PORT, MONGO_URI, CLIENT_URL, CACHE_TTL_SECONDS
+  - Document each variable's purpose
+  Estimated time: 10 min
+
+TASK-005  Create models/Profile.js                       [P1] [ ]
+  - Fields: name, leetcode, gfg, github, hackerrank, codechef,
+    savedAt, leetcodeData, githubData, gfgData, hackerrankData,
+    overallScore (Mixed type for raw platform JSON)
+  - Index on overallScore for leaderboard sorting
+  Estimated time: 20 min
+
+TASK-006  Create models/Search.js                        [P1] [ ]
+  - Fields: platform, username, searchedAt, resultData,
+    cacheExpiry
+  - Index on platform + username
+  Estimated time: 10 min
+
+TASK-007  Create middleware/errorHandler.js               [P1] [ ]
+  - Custom ApiError class with statusCode
+  - notFound middleware for unmatched routes
+  - Central errorHandler middleware returning JSON error shape
+  Estimated time: 20 min
+
+TASK-008  Create middleware/cacheMiddleware.js             [P1] [ ]
+  - node-cache instance with 1 hour default TTL
+  - getOrFetch(platform, username, fetchFn) wrapper
+  - Returns { data, cached, cachedAt }
+  Estimated time: 25 min
+
+TASK-009  Create services/leetcodeService.js               [P1] [ ]
+  - Fetch from leetcode-stats-api.herokuapp.com
+  - Retry with backoff (2 retries) on failure
+  - Fallback to LeetCode's own GraphQL endpoint if community
+    API fails, pulling solved counts, acceptance rate, ranking,
+    and contest rating
+  - Return null-safe fields (use null, not 0, for unknowns)
+  Estimated time: 60 min
+
+TASK-010  Create services/githubService.js                 [P1] [ ]
+  - Fetch user profile from GitHub REST API
+  - Fetch up to 100 repos, compute total stars + top languages
+  - Scrape real contribution calendar from GitHub's public
+    /users/{username}/contributions page (data-date/data-level)
+  - Handle 404 (user not found) and 403 (rate limit) explicitly
+  Estimated time: 50 min
+
+TASK-011  Create services/gfgService.js                    [P2] [ ]
+  - Try unofficial community JSON API first
+  - Fall back to scraping the public practice profile page
+  - Throw a clear ApiError if both sources fail
+  Estimated time: 35 min
+
+TASK-012  Create services/hackerrankService.js              [P2] [ ]
+  - Scrape public profile page for badges + certifications
+  - Throw a clear ApiError if the profile is private/not found
+  Estimated time: 30 min
+
+SPRINT 1 DONE WHEN:
+  ✓ npm run dev starts without errors
+  ✓ MongoDB connects successfully (local or Atlas)
+  ✓ Calling fetchLeetCodeStats('neetcode') returns real data
+  ✓ Calling fetchGitHubStats('torvalds') returns real data
+  ✓ GFG/HackerRank services return either real data or a clear
+    ApiError (never crash the process)
+
+================================================================
+SPRINT 2 — CONTROLLERS + ROUTES + CACHING + SCORE ENGINE
+Duration : Day 3–4
+Goal     : Full REST API working end-to-end via Postman/curl
+================================================================
+
+TASK-013  Create services/scoreCalculator.js                [P1] [ ]
+  - leetcodeScore(), githubScore(), gfgScore(),
+    hackerrankScore() — each normalised to 0-100
+  - calculateOverallScore() — weighted 40/30/20/10 combine
+  - deriveInsights() — strengths / weaknesses / suggestions
+    generated from the score breakdown and raw platform data
+  Estimated time: 45 min
+
+TASK-014  Create controllers/analyseController.js            [P1] [ ]
+  - One handler per platform (leetcode/github/gfg/hackerrank)
+    wrapping getOrFetch() + logging to Search collection
+  - getAll() — fetch all 4 platforms in parallel with
+    Promise.all, isolate failures per platform (safeFetch)
+  - Compute overall score + insights in the /all response
+  Estimated time: 50 min
+
+TASK-015  Create controllers/profileController.js            [P1] [ ]
+  - saveProfile() — POST /api/profiles/save
+  - getProfiles() — GET /api/profiles (sorted by savedAt desc)
+  - getProfileById() — GET /api/profiles/:id
+  - deleteProfile() — DELETE /api/profiles/:id
+  Estimated time: 30 min
+
+TASK-016  Create controllers/statsController.js               [P1] [ ]
+  - compareProfiles() — category-by-category diff with
+    per-category winner ('p1' / 'p2' / 'tie')
+  - getLeaderboard() — overall + per-platform rankings
+  Estimated time: 40 min
+
+TASK-017  Create routes/analyseRoutes.js                      [P1] [ ]
+  - POST /leetcode /github /gfg /hackerrank /all
+  Estimated time: 10 min
+
+TASK-018  Create routes/profileRoutes.js                      [P1] [ ]
+  - POST /save, GET /, GET /:id, DELETE /:id
+  Estimated time: 10 min
+
+TASK-019  Create routes/statsRoutes.js                         [P1] [ ]
+  - GET /compare, GET /leaderboard
+  Estimated time: 10 min
+
+TASK-020  Wire up server.js                                    [P1] [ ]
+  - helmet, cors (CLIENT_URL from env), express.json, morgan
+  - GET /api/health check route
+  - Mount all three route groups under /api
+  - notFound + errorHandler as final middleware
+  - connectDB() then app.listen()
+  Estimated time: 25 min
+
+TASK-021  API smoke test (Postman / curl)                      [P1] [ ]
+  - POST /api/analyse/all with real usernames → 200 + score
+  - POST /api/profiles/save → 201 + saved document
+  - GET /api/profiles → returns saved profile
+  - GET /api/stats/leaderboard → sorted list
+  - GET /api/stats/compare?id1=...&id2=... → category winners
+  Estimated time: 30 min
+
+SPRINT 2 DONE WHEN:
+  ✓ All REST endpoints return correct JSON shapes
+  ✓ Overall score calculation matches the documented weights
+  ✓ A profile can be saved, listed, fetched by id, and deleted
+  ✓ Compare and leaderboard endpoints work against saved data
+  ✓ Repeated analyse calls within an hour show cached: true
+
+================================================================
+SPRINT 3 — FRONTEND SETUP + HOME PAGE + RESULTS DASHBOARD
+Duration : Day 5–6
+Goal     : User can enter usernames, analyse, and see a full
+           results dashboard with real charts
+================================================================
+
+TASK-022  Initialize Vite + React project                      [P1] [ ]
+  - npm create vite@latest client -- --template react
+  - npm install axios react-router-dom react-icons
+    react-hot-toast recharts framer-motion
+    react-loading-skeleton
+  - npm install -D tailwindcss postcss autoprefixer
+  Estimated time: 20 min
+
+TASK-023  Configure Tailwind — "coding vibe" dark theme          [P1] [ ]
+  - Custom colour tokens: ink (background scale), amber (accent),
+    teal, violet, coral
+  - JetBrains Mono for stat numbers, Inter for body text
+  - Global card / button / input utility classes in index.css
+  Estimated time: 30 min
+
+TASK-024  Create folder structure                               [P1] [ ]
+  Create these folders under client/src/:
+  - components/Platform/  components/Charts/  components/UI/
+  - pages/  hooks/  utils/
+  Estimated time: 5 min
+
+TASK-025  Create utils/api.js                                    [P1] [ ]
+  - Axios instance, baseURL from VITE_API_URL env var (falls
+    back to '/api' for local dev via Vite proxy)
+  - One exported function per backend endpoint
+  Estimated time: 20 min
+
+TASK-026  Configure vite.config.js dev proxy                      [P1] [ ]
+  - Proxy /api → http://localhost:5000 for local development
+  Estimated time: 10 min
+
+TASK-027  Create hooks/useAnalyse.js                               [P1] [ ]
+  - Calls analyseAll(), manages loading/result/error state
+  - Shows a toast per platform that failed (non-blocking)
+  - Saves last 5 searches to localStorage
+  Estimated time: 25 min
+
+TASK-028  Create pages/Home.jsx                                    [P1] [ ]
+  - Input fields for LeetCode / GitHub / GFG / HackerRank /
+    CodeChef (disabled, "coming soon")
+  - Analyse button, loading state
+  - Recent searches pill list, click to re-fill form
+  - On success: store result in sessionStorage, navigate to
+    /results
+  Estimated time: 40 min
+
+TASK-029  Create UI components                                     [P1] [ ]
+  - ScoreGauge.jsx — animated circular progress (Framer Motion)
+  - StatBadge.jsx — small icon + value + label pill
+  - LoadingSkeleton.jsx — card + dashboard skeleton states
+  - ErrorCard.jsx — per-platform failure card with retry option
+  - SuggestionCard.jsx — numbered improvement suggestions
+  Estimated time: 45 min
+
+TASK-030  Create chart components                                   [P1] [ ]
+  - DonutChart.jsx — LeetCode Easy/Medium/Hard (Recharts Pie)
+  - LanguageChart.jsx — GitHub top languages pie chart
+  - HeatMap.jsx — real GitHub contribution calendar grid
+    (colour-scaled by activity level 0-4)
+  Estimated time: 40 min
+
+TASK-031  Create platform card components                            [P1] [ ]
+  - LeetCodeCard.jsx, GitHubCard.jsx, GFGCard.jsx,
+    HackerRankCard.jsx
+  - Each handles its own loading / error / data states
+  - "cached · <time>" label shown when result.cached is true
+  Estimated time: 50 min
+
+TASK-032  Create pages/Results.jsx                                    [P1] [ ]
+  - Reads result from sessionStorage
+  - Overall score gauge + per-platform breakdown bars
+  - Save-profile input + button
+  - Renders all 4 platform cards in a responsive grid
+  - Strengths / Weaknesses / Suggestions cards
+  Estimated time: 45 min
+
+TASK-033  Wire up App.jsx + Navbar                                     [P1] [ ]
+  - BrowserRouter with routes: /, /results, /compare, /saved,
+    /leaderboard
+  - Sticky Navbar with active-link highlighting
+  - <Toaster> with dark theme styling
+  Estimated time: 25 min
+
+SPRINT 3 DONE WHEN:
+  ✓ npm run dev starts without errors
+  ✓ Entering a real LeetCode + GitHub username and clicking
+    Analyse shows a full Results dashboard
+  ✓ Donut chart, language chart, and heatmap all render with
+    real data
+  ✓ Loading skeletons show while fetching
+  ✓ A failed platform shows an ErrorCard, not a broken page
+
+================================================================
+SPRINT 4 — COMPARE + SAVED PROFILES + LEADERBOARD PAGES
+Duration : Day 7–8
+Goal     : Full profile lifecycle — save, view, compare, rank
+================================================================
+
+TASK-034  Create hooks/useProfile.js                                   [P1] [ ]
+  - load() — GET /api/profiles
+  - save(payload) — POST /api/profiles/save, reloads list
+  - remove(id) — DELETE /api/profiles/:id, updates local state
+  Estimated time: 25 min
+
+TASK-035  Create components/ProfileCompareCard.jsx                       [P1] [ ]
+  - Table layout: profile 1 | category label | profile 2
+  - Winning value highlighted amber + trophy emoji
+  Estimated time: 25 min
+
+TASK-036  Create pages/Compare.jsx                                        [P1] [ ]
+  - Two dropdowns populated from saved profiles
+  - Validation: must pick two different profiles
+  - Calls GET /api/stats/compare, renders gauges for both +
+    overall winner + ProfileCompareCard
+  Estimated time: 35 min
+
+TASK-037  Create pages/SavedProfiles.jsx                                   [P1] [ ]
+  - Grid of saved profile cards (name, saved date, mini gauge)
+  - View button restores the profile into sessionStorage and
+    navigates to /results
+  - Delete button with toast confirmation
+  - Empty state message when no profiles exist
+  Estimated time: 30 min
+
+TASK-038  Create pages/Leaderboard.jsx                                      [P1] [ ]
+  - GET /api/stats/leaderboard on mount
+  - Top 3 rows get gold/silver/bronze trophy icons
+  - Remaining rows show plain rank number
+  - Score right-aligned in amber
+  Estimated time: 25 min
+
+TASK-039  Test all pages end-to-end                                         [P1] [ ]
+  - Analyse a profile → save it with a name
+  - Repeat with a second profile
+  - Open Saved Profiles → verify both show correct scores
+  - Open Compare → select both → verify correct winners
+  - Open Leaderboard → verify correct sort order
+  - Delete one profile → verify it disappears everywhere
+  Estimated time: 30 min
+
+SPRINT 4 DONE WHEN:
+  ✓ All 5 pages render without errors
+  ✓ Saving a profile persists correctly in MongoDB
+  ✓ Compare page shows accurate per-category winners
+  ✓ Leaderboard sorts correctly by overall score
+  ✓ Deleting a profile removes it from Saved + Leaderboard
+
+================================================================
+SPRINT 5 — POLISH + TESTING + DEPLOYMENT
+Duration : Day 9–10
+Goal     : Bug-free, polished, and live on the internet
+================================================================
+
+TASK-040  Visual polish pass                                                 [P2] [ ]
+  - Check all hover states on buttons and cards
+  - Verify empty states on Saved Profiles and Leaderboard
+  - Confirm toast styling matches dark theme
+  - Confirm "N/A" (not misleading 0%/0) shown for genuinely
+    unknown stats (e.g. LeetCode acceptance rate)
+  Estimated time: 25 min
+
+TASK-041  Responsive design check                                            [P2] [ ]
+  - Test at 375px: single-column cards, readable text
+  - Test at 768px: 2-column platform card grid
+  - Test at 1280px+: full layout, navbar links visible
+  Estimated time: 20 min
+
+TASK-042  Manual testing (full run)                                           [P1] [ ]
+  - Execute all test cases in 4_manual_testing.txt
+  - Log any bugs found in the bug log template
+  - Fix critical (P1) bugs before deploying
+  Estimated time: 60 min
+
+TASK-043  Set up MongoDB Atlas                                                [P1] [ ]
+  - Create free M0 cluster
+  - Create database user + password
+  - Network Access → allow access from anywhere (0.0.0.0/0)
+  - Copy connection string, add /coding-analyser database name
+  Estimated time: 20 min
+
+TASK-044  Deploy backend to Render                                             [P1] [ ]
+  - New Web Service → connect GitHub repo
+  - Root Directory: server
+  - Build Command: npm install / Start Command: npm start
+  - Add env vars: MONGO_URI, CLIENT_URL, PORT,
+    CACHE_TTL_SECONDS
+  - Verify /api/health returns success JSON on the live URL
+  Estimated time: 30 min
+
+TASK-045  Deploy frontend to Vercel                                             [P1] [ ]
+  - New Project → import GitHub repo
+  - Root Directory: client (set before first deploy)
+  - Framework auto-detected as Vite
+  - Add env var: VITE_API_URL = <render-url>/api
+  - Deploy and confirm Home page loads
+  Estimated time: 25 min
+
+TASK-046  Connect frontend to live backend                                       [P1] [ ]
+  - Update utils/api.js to use import.meta.env.VITE_API_URL
+    with a '/api' fallback for local dev
+  - Push change, confirm Vercel auto-redeploys
+  - Re-test Analyse button against the live Render backend
+  Estimated time: 20 min
+
+TASK-047  Post-deploy verification                                                [P1] [ ]
+  - Visit live Vercel URL
+  - Analyse a real profile end-to-end
+  - Save a profile, verify it appears in Saved Profiles
+  - Compare two profiles, verify Leaderboard updates
+  - Confirm first request after idle time still succeeds
+    (Render free tier cold start ~30-50s)
+  Estimated time: 20 min
+
+TASK-048  Write README.md                                                          [P3] [ ]
+  - Project description + live demo links
+  - Tech stack table
+  - Setup instructions (local + deployment notes)
+  - Features list
+  - Known limitations (GFG/HackerRank unofficial data sources)
+  Estimated time: 30 min
+
+SPRINT 5 DONE WHEN:
+  ✓ Backend live on Render, /api/health responds correctly
+  ✓ Frontend live on Vercel, loads without errors
+  ✓ Analyse button works end-to-end against the live backend
+  ✓ Saved profiles persist in MongoDB Atlas
+  ✓ README written with live links
+
+================================================================
+TASK SUMMARY TABLE
+================================================================
+
+Sprint  Task     Description                             Priority Status
+------  -------  --------------------------------------  -------- ------
+  1     001      Node/Express project init                  P1     [ ]
+  1     002      Folder structure                           P1     [ ]
+  1     003      database.js (Mongoose connect)              P1     [ ]
+  1     004      .env.example                                P1     [ ]
+  1     005      Profile model                               P1     [ ]
+  1     006      Search model                                P1     [ ]
+  1     007      errorHandler middleware                     P1     [ ]
+  1     008      cacheMiddleware (node-cache)                P1     [ ]
+  1     009      leetcodeService (+ GraphQL fallback)         P1     [ ]
+  1     010      githubService (+ real heatmap scrape)        P1     [ ]
+  1     011      gfgService                                   P2     [ ]
+  1     012      hackerrankService                            P2     [ ]
+  2     013      scoreCalculator                              P1     [ ]
+  2     014      analyseController                            P1     [ ]
+  2     015      profileController                            P1     [ ]
+  2     016      statsController                              P1     [ ]
+  2     017      analyseRoutes                                P1     [ ]
+  2     018      profileRoutes                                P1     [ ]
+  2     019      statsRoutes                                  P1     [ ]
+  2     020      server.js wiring                             P1     [ ]
+  2     021      API smoke test                               P1     [ ]
+  3     022      Vite + React init                            P1     [ ]
+  3     023      Tailwind dark theme config                   P1     [ ]
+  3     024      Frontend folder structure                    P1     [ ]
+  3     025      utils/api.js                                 P1     [ ]
+  3     026      Vite dev proxy config                        P1     [ ]
+  3     027      useAnalyse hook                               P1     [ ]
+  3     028      Home page                                    P1     [ ]
+  3     029      UI components                                P1     [ ]
+  3     030      Chart components                             P1     [ ]
+  3     031      Platform card components                     P1     [ ]
+  3     032      Results page                                 P1     [ ]
+  3     033      App.jsx + Navbar routing                     P1     [ ]
+  4     034      useProfile hook                               P1     [ ]
+  4     035      ProfileCompareCard component                  P1     [ ]
+  4     036      Compare page                                 P1     [ ]
+  4     037      Saved Profiles page                          P1     [ ]
+  4     038      Leaderboard page                              P1     [ ]
+  4     039      Full page-flow test                          P1     [ ]
+  5     040      Visual polish                                P2     [ ]
+  5     041      Responsive check                             P2     [ ]
+  5     042      Full manual test run                          P1     [ ]
+  5     043      MongoDB Atlas setup                           P1     [ ]
+  5     044      Render backend deploy                         P1     [ ]
+  5     045      Vercel frontend deploy                        P1     [ ]
+  5     046      Connect frontend to live backend               P1     [ ]
+  5     047      Post-deploy verification                      P1     [ ]
+  5     048      README.md                                    P3     [ ]
+
+TOTAL TASKS : 48
+P1 (Must)   : 40
+P2 (Should) : 5
+P3 (Nice)   : 1
+
+================================================================
+END OF SPRINT PLAN
+================================================================

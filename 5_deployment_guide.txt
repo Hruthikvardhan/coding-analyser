@@ -1,0 +1,415 @@
+================================================================
+  DEPLOYMENT GUIDE
+  Project   : Coding Profile Analyser
+  Platforms : Vercel (frontend) + Render (backend)
+              + MongoDB Atlas (database)
+  Build Tool: Vite (client) / Node.js (server)
+  Author    : Hruthik
+================================================================
+
+----------------------------------------------------------------
+SECTION 1 — WHY THREE SEPARATE SERVICES
+----------------------------------------------------------------
+
+This is a full MERN app, not a frontend-only SPA, so deployment
+needs three pieces instead of one:
+
+  Piece       Hosted on        Why
+  ----------  ---------------  --------------------------------
+  Database    MongoDB Atlas    Local MongoDB only runs on your
+                                own laptop; the hosted backend
+                                needs a database reachable over
+                                the internet
+  Backend     Render           Express API + platform-fetching
+                                services need a Node.js runtime
+                                running continuously
+  Frontend    Vercel           React (Vite) build is a static
+                                site; served from Vercel's CDN
+
+The frontend never talks to MongoDB directly — it only calls
+the backend's REST API, and the backend talks to MongoDB on
+its behalf.
+
+----------------------------------------------------------------
+SECTION 2 — PRE-DEPLOYMENT CHECKLIST
+----------------------------------------------------------------
+
+Complete ALL of these before deploying. Check each one:
+
+[ ] 1. Backend runs correctly locally (npm run dev in server/)
+[ ] 2. Frontend runs correctly locally (npm run dev in client/)
+[ ] 3. MongoDB connects successfully locally
+[ ] 4. All manual test cases pass locally
+[ ] 5. .gitignore includes node_modules, dist, and .env
+[ ] 6. No real API keys or secrets committed to GitHub
+[ ] 7. GitHub repo created and code pushed (server/ + client/
+       as top-level folders in the same repo)
+[ ] 8. client/src/utils/api.js reads baseURL from
+       import.meta.env.VITE_API_URL with a '/api' fallback
+
+----------------------------------------------------------------
+SECTION 3 — STEP-BY-STEP: MONGODB ATLAS SETUP
+----------------------------------------------------------------
+
+STEP 3.1 — CREATE A FREE CLUSTER
+-----------------------------------
+1. Go to https://www.mongodb.com/atlas and sign up
+2. Click "Build a Database" → choose the M0 Free tier
+3. Pick any cloud provider/region → Create
+
+STEP 3.2 — CREATE A DATABASE USER
+------------------------------------
+1. Under "Database Access" → "Add New Database User"
+2. Set a username and password (autogenerate is fine)
+3. Save the password somewhere safe — you'll need it in the
+   connection string
+
+STEP 3.3 — ALLOW NETWORK ACCESS
+-----------------------------------
+1. Under "Network Access" → "Add IP Address"
+2. Click "Allow Access from Anywhere" (0.0.0.0/0)
+   (Fine for a portfolio project; a production app would
+   restrict this to known IP ranges)
+
+STEP 3.4 — GET THE CONNECTION STRING
+----------------------------------------
+1. Go to "Database" → click "Connect" on your cluster
+2. Choose "Drivers"
+3. Copy the string, it looks like:
+   mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/
+     ?retryWrites=true&w=majority
+4. Replace <password> with your actual password
+5. Add the database name right after ".net" and before the "?":
+   mongodb+srv://user:pass@cluster0.xxxxx.mongodb.net/
+     coding-analyser?retryWrites=true&w=majority
+
+----------------------------------------------------------------
+SECTION 4 — STEP-BY-STEP: DEPLOY BACKEND TO RENDER
+----------------------------------------------------------------
+
+STEP 4.1 — CREATE RENDER ACCOUNT
+-----------------------------------
+1. Go to https://render.com and sign up (GitHub login is
+   easiest — links your repos automatically)
+
+STEP 4.2 — CREATE A NEW WEB SERVICE
+---------------------------------------
+1. Dashboard → "New +" → "Web Service"
+2. Connect and select your GitHub repo (e.g.
+   yourusername/coding-analyser)
+
+STEP 4.3 — CONFIGURE THE SERVICE
+------------------------------------
+Fill in these fields exactly:
+
+  Name             : coding-analyser (or any name)
+  Language         : Node
+  Branch           : main
+  Region           : any (Oregon / Singapore both fine)
+  Root Directory   : server
+  Build Command    : npm install
+  Start Command    : npm start
+  Instance Type    : Free
+
+IMPORTANT: Root Directory MUST be "server" — this repo has
+both server/ and client/ as top-level folders, and Render
+needs to know which one is the actual Node app.
+
+STEP 4.4 — ADD ENVIRONMENT VARIABLES
+----------------------------------------
+Under "Environment Variables", add all 4:
+
+  Key                  Value
+  -------------------  ---------------------------------------
+  MONGO_URI            your full Atlas connection string
+                        (from Section 3.4, including the
+                        /coding-analyser database name)
+  CLIENT_URL            https://your-project.vercel.app
+                        (your LIVE Vercel URL — NOT localhost;
+                        this controls CORS, so it must match
+                        exactly or requests will be blocked)
+  PORT                  5000
+  CACHE_TTL_SECONDS      3600
+
+STEP 4.5 — DEPLOY
+---------------------
+1. Click "Deploy Web Service" (or "Create Web Service")
+2. Watch the build logs — expect to see:
+     added XXX packages
+     Running 'npm start'
+     MongoDB connected: <atlas-host>
+     Server running on http://localhost:5000
+     Your service is live 🎉
+     Available at your primary URL https://your-app.onrender.com
+
+NOTE ON THE ROOT "Not Found" MESSAGE:
+  Visiting https://your-app.onrender.com directly (no path)
+  will correctly show "Not Found" — this API has no route at
+  "/", only under "/api/...". This is expected, not a bug.
+
+STEP 4.6 — VERIFY THE LIVE BACKEND
+--------------------------------------
+Open in a browser:
+  https://your-app.onrender.com/api/health
+
+Expected response:
+  { "success": true, "message": "Coding Profile Analyser API
+    is running" }
+
+----------------------------------------------------------------
+SECTION 5 — STEP-BY-STEP: DEPLOY FRONTEND TO VERCEL
+----------------------------------------------------------------
+
+STEP 5.1 — CREATE VERCEL ACCOUNT
+------------------------------------
+1. Go to https://vercel.com and sign up with "Continue with
+   GitHub"
+
+STEP 5.2 — IMPORT THE PROJECT
+----------------------------------
+1. Dashboard → "Add New..." → "Project"
+2. Find your repo (e.g. coding-analyser) → "Import"
+
+STEP 5.3 — SET ROOT DIRECTORY BEFORE FIRST DEPLOY
+-------------------------------------------------------
+This is the step most likely to go wrong if skipped:
+
+1. On the "New Project" configuration screen, find
+   "Root Directory" → click "Edit"
+2. Select/type: client
+3. Confirm — "Framework Preset" should now auto-detect as
+   "Vite" (if it still says "Other", the root directory
+   wasn't applied correctly)
+
+If you already deployed without setting this and got a 404:
+  Settings → General → Build and Deployment → Root Directory
+  → type "client" → Save → then Deployments → "..." →
+  Redeploy
+
+STEP 5.4 — ADD ENVIRONMENT VARIABLE
+----------------------------------------
+Settings → Environment Variables → "Add Environment Variable"
+
+  Key            : VITE_API_URL
+  Value          : https://your-app.onrender.com/api
+  Environment    : Production (and Preview if you want)
+
+This tells the built frontend where the live backend is,
+instead of relying on the local-only Vite dev proxy.
+
+STEP 5.5 — DEPLOY
+---------------------
+1. Click "Deploy"
+2. Vercel will:
+     a. Clone your GitHub repo
+     b. cd into client/ (because Root Directory = client)
+     c. Run npm install
+     d. Run npm run build
+     e. Upload the dist/ folder to its CDN
+3. Wait 1–2 minutes
+
+STEP 5.6 — DEPLOYMENT SUCCESS
+----------------------------------
+You'll see: "Your project has been deployed"
+Live URL looks like:
+  https://coding-analyser.vercel.app
+
+----------------------------------------------------------------
+SECTION 6 — CONNECT FRONTEND CODE TO THE LIVE BACKEND
+----------------------------------------------------------------
+
+Open client/src/utils/api.js. Confirm the axios instance uses
+the environment variable with a local fallback:
+
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || '/api',
+    timeout: 20000
+  });
+
+  - Locally (no VITE_API_URL set): falls back to '/api', which
+    Vite's dev server proxies to http://localhost:5000
+  - In production (VITE_API_URL set in Vercel): calls the live
+    Render URL directly
+
+Commit and push this file if it isn't already set up this way.
+Vercel will auto-redeploy on push. If you only changed the
+environment variable (not the code), trigger a manual redeploy
+from Deployments → "..." → Redeploy — env var changes do not
+apply retroactively to old builds.
+
+----------------------------------------------------------------
+SECTION 7 — POST-DEPLOY VERIFICATION CHECKLIST
+----------------------------------------------------------------
+
+Test these on the LIVE Vercel URL (not localhost):
+
+[ ] 1.  Home page loads with all input fields
+[ ] 2.  Analysing a real LeetCode username returns real data
+[ ] 3.  Analysing a real GitHub username returns real data
+        (repos, stars, language chart, contribution heatmap)
+[ ] 4.  Overall score gauge renders with correct breakdown
+[ ] 5.  Save profile — works and shows a success toast
+[ ] 6.  Saved Profiles page — shows the saved profile
+[ ] 7.  Compare page — dropdowns populate, comparison works
+[ ] 8.  Leaderboard page — shows correct sort order
+[ ] 9.  No CORS errors in the browser console
+[ ] 10. First request after Render idles (~15+ min of no
+        traffic) still eventually succeeds, just slower
+
+----------------------------------------------------------------
+SECTION 8 — AUTOMATIC RE-DEPLOYS (FREE FEATURE)
+----------------------------------------------------------------
+
+Every time you push new code to GitHub main branch:
+  - Vercel automatically rebuilds and redeploys the frontend
+  - Render automatically rebuilds and redeploys the backend
+
+Typical workflow:
+  1. Edit code locally (server/ or client/)
+  2. Test locally with npm run dev in the relevant folder
+  3. git add . && git commit -m "message" && git push
+  4. Check Vercel/Render dashboards — both should show a new
+     deployment in progress automatically
+
+----------------------------------------------------------------
+SECTION 9 — TROUBLESHOOTING COMMON ISSUES
+----------------------------------------------------------------
+
+ISSUE 1: Vercel shows "404: NOT_FOUND" on the deployed URL
+  Cause   : Root Directory not set to "client"
+  Fix     : Settings → General → Build and Deployment →
+            Root Directory → "client" → Save → Redeploy
+
+ISSUE 2: Frontend loads but "Analyse" always fails
+  Cause   : Frontend is calling '/api/...' which only exists
+            locally via the Vite dev proxy — no backend to
+            reach in production
+  Fix     : Add VITE_API_URL env var in Vercel pointing to the
+            live Render URL, confirm api.js reads it, redeploy
+
+ISSUE 3: CORS error in browser console
+  Cause   : CLIENT_URL on Render doesn't match the actual
+            Vercel URL (e.g. still set to localhost, or a typo)
+  Fix     : Update CLIENT_URL in Render's Environment Variables
+            to the exact live Vercel URL, then manually redeploy
+            the backend
+
+ISSUE 4: Render shows "MongoDB connection error"
+  Cause   : MONGO_URI missing the database name, wrong
+            password, or Atlas Network Access not open
+  Fix     : Re-check the connection string format, confirm
+            0.0.0.0/0 is allowed under Network Access
+
+ISSUE 5: First request after inactivity takes 30-50 seconds
+  Cause   : Render's free tier spins the instance down after
+            inactivity; this is expected, not a bug
+  Fix     : None needed for a portfolio project — just wait
+            for the first request. Upgrade to a paid instance
+            to remove this behaviour.
+
+ISSUE 6: "Route not found: /" appears in Render logs
+  Cause   : Render's health check pings the bare root URL,
+            which this API doesn't define
+  Fix     : None needed — this is expected and harmless as
+            long as /api/health responds correctly
+
+ISSUE 7: npm install fails on Windows with SSL/EPERM errors
+  Cause   : OneDrive syncing the project folder while npm
+            writes to node_modules, or a corrupted npm cache
+  Fix     : Move the project outside OneDrive-synced folders
+            (e.g. to C:\projects\...), run npm cache clean
+            --force, then npm install again
+
+ISSUE 8: GitHub API returns 403 / rate limited
+  Cause   : Unauthenticated GitHub requests are capped at
+            60/hour
+  Fix     : Add a GITHUB_TOKEN environment variable (a GitHub
+            personal access token) to raise the limit
+
+----------------------------------------------------------------
+SECTION 10 — FREE TIER LIMITS
+----------------------------------------------------------------
+
+VERCEL (Hobby plan)
+  Bandwidth       : 100 GB/month
+  Build minutes   : 6,000 min/month
+  Deployments     : Unlimited
+  HTTPS           : Free and automatic
+
+RENDER (Free instance)
+  RAM             : 512 MB
+  CPU             : 0.1 shared
+  Spins down      : after ~15 min of inactivity
+  Cold start      : 30-50 seconds on next request
+
+MONGODB ATLAS (M0 Free tier)
+  Storage         : 512 MB
+  Shared cluster, sufficient for this project's data volume
+
+----------------------------------------------------------------
+SECTION 11 — SHARING YOUR DEPLOYED APP
+----------------------------------------------------------------
+
+FOR PORTFOLIO / RESUME:
+  "Live Demo: https://coding-analyser.vercel.app"
+  "API: https://coding-analyser.onrender.com/api/health"
+  "GitHub: https://github.com/yourusername/coding-analyser"
+
+FOR INTERVIEWS:
+  - Open the live URL, analyse a real profile live
+  - Mention the fallback strategy for LeetCode (community API
+    with GraphQL fallback) and graceful degradation for GFG/
+    HackerRank (no official public APIs)
+  - Show the three-service deployment architecture (Vercel +
+    Render + Atlas) and explain why the split was necessary
+
+----------------------------------------------------------------
+SECTION 12 — QUICK REFERENCE COMMANDS
+----------------------------------------------------------------
+
+  # Backend — install and run locally
+  cd server
+  npm install
+  npm run dev              → http://localhost:5000
+
+  # Frontend — install and run locally
+  cd client
+  npm install
+  npm run dev              → http://localhost:5173
+
+  # Push changes (triggers both auto-redeploys)
+  git add .
+  git commit -m "your message"
+  git push
+
+  # Check git status / history
+  git status
+  git log --oneline
+
+----------------------------------------------------------------
+SECTION 13 — FILE CHECKLIST BEFORE FIRST PUSH
+----------------------------------------------------------------
+
+  coding-analyser/
+  ├── server/
+  │   ├── package.json      ← has "start": "node server.js"
+  │   ├── server.js
+  │   ├── .env.example      ← real .env NOT committed
+  │   └── (models/ controllers/ routes/ services/ middleware/)
+  ├── client/
+  │   ├── package.json      ← has "build": "vite build"
+  │   ├── vite.config.js
+  │   ├── tailwind.config.js
+  │   ├── index.html
+  │   └── src/
+  └── .gitignore             ← excludes node_modules, dist, .env
+
+  MUST NOT EXIST in GitHub:
+  ✗ server/node_modules/     ← excluded by .gitignore
+  ✗ client/node_modules/     ← excluded by .gitignore
+  ✗ client/dist/             ← excluded by .gitignore
+  ✗ server/.env              ← excluded by .gitignore (secrets)
+
+================================================================
+END OF DEPLOYMENT GUIDE
+================================================================

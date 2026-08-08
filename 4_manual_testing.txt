@@ -1,0 +1,517 @@
+================================================================
+  MANUAL TESTING DOCUMENT
+  Project   : Coding Profile Analyser
+  Tester    : Hruthik
+  Browser   : Chrome (primary), Firefox, Edge
+  Test Type : Functional + UI + API + Regression
+================================================================
+
+HOW TO USE THIS DOCUMENT
+  - Go through each test case one by one
+  - Write PASS or FAIL in the [ ] column
+  - If FAIL: write what actually happened in NOTES
+  - Run again after fixing bugs (regression test)
+
+RESULT KEY
+  [P] = PASS
+  [F] = FAIL
+  [S] = SKIP (feature not implemented / platform down)
+  [B] = BLOCKED (depends on failing test)
+
+================================================================
+MODULE 1 — HOME PAGE / INPUT FORM
+================================================================
+
+TEST-HOME-001  HOME PAGE LOADS
+  Steps:
+    1. Open browser to http://localhost:5173
+  Expected: Dark themed Home page renders with heading
+    "Analyse Your Coding Journey" and 5 input fields
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HOME-002  ALL INPUT FIELDS PRESENT
+  Steps:
+    1. On Home page, check each labelled field
+  Expected: LeetCode, GitHub, GeeksForGeeks, HackerRank fields
+    are enabled; CodeChef field is visible but disabled with
+    "coming soon" placeholder
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HOME-003  ANALYSE WITH ALL FIELDS EMPTY
+  Steps:
+    1. Leave all fields blank
+    2. Click "Analyse"
+  Expected: Toast error "Enter at least one platform username";
+    no navigation occurs
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HOME-004  ANALYSE WITH ONE VALID USERNAME
+  Steps:
+    1. Enter a real GitHub username (e.g. torvalds)
+    2. Click "Analyse"
+  Expected: Loading state shown, then redirected to /results
+    with GitHub card populated
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HOME-005  RECENT SEARCHES SAVED
+  Steps:
+    1. Run an analysis successfully
+    2. Return to Home page
+  Expected: A pill button showing the searched username appears
+    under "Recent searches"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HOME-006  RECENT SEARCH RE-FILLS FORM
+  Steps:
+    1. Click a recent search pill
+  Expected: Form fields are pre-filled with that search's
+    usernames
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 2 — LEETCODE INTEGRATION
+----------------------------------------------------------------
+
+TEST-LC-001  VALID LEETCODE USERNAME
+  Steps:
+    1. Enter a known-active username (e.g. neetcode)
+    2. Click Analyse
+  Expected: LeetCode card shows donut chart with Easy/Medium/
+    Hard counts, acceptance rate, global rank
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-LC-002  INVALID / NON-EXISTENT USERNAME
+  Steps:
+    1. Enter a random string unlikely to be a real username
+    2. Click Analyse
+  Expected: Toast error for leetcode platform; ErrorCard shown
+    in place of the LeetCode card
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-LC-003  COMMUNITY API DOWN — GRAPHQL FALLBACK
+  Steps:
+    1. Simulate/observe a 503 from the community stats API
+       (or wait for a natural outage)
+  Expected: Backend automatically falls back to LeetCode's
+    GraphQL endpoint; card still populates with real data
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-LC-004  UNKNOWN ACCEPTANCE RATE SHOWS "N/A"
+  Steps:
+    1. Trigger a case where acceptanceRate cannot be computed
+  Expected: Card shows "N/A", not a misleading "0.0%"
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 3 — GITHUB INTEGRATION
+----------------------------------------------------------------
+
+TEST-GH-001  VALID GITHUB USERNAME
+  Steps:
+    1. Enter a known-active username (e.g. torvalds)
+    2. Click Analyse
+  Expected: GitHub card shows repo count, stars, followers,
+    language pie chart, and a contribution heatmap
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-GH-002  INVALID GITHUB USERNAME
+  Steps:
+    1. Enter a random non-existent username
+  Expected: Toast + ErrorCard: "GitHub user not found"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-GH-003  CONTRIBUTION HEATMAP SHOWS REAL DATA
+  Steps:
+    1. Analyse your own GitHub username
+    2. Compare the heatmap squares against your real GitHub
+       profile's contribution graph
+  Expected: Green intensity levels roughly match your actual
+    GitHub contribution calendar (not a fake/random pattern)
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-GH-004  RATE LIMIT HANDLING
+  Steps:
+    1. Trigger 60+ unauthenticated GitHub requests in an hour
+  Expected: Toast: "GitHub API rate limit exceeded..."; app
+    does not crash
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 4 — GEEKSFORGEEKS INTEGRATION
+----------------------------------------------------------------
+
+TEST-GFG-001  VALID GFG USERNAME
+  Steps:
+    1. Enter a real GFG username
+    2. Click Analyse
+  Expected: GFG card shows coding score, problems solved,
+    institute rank, streak — OR a clear error if GFG is
+    blocking automated requests
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-GFG-002  BLOCKED / UNAVAILABLE GFG PROFILE
+  Steps:
+    1. Enter a username GFG blocks or that doesn't exist
+  Expected: Toast + ErrorCard with a clear message; other
+    platform cards still render normally
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 5 — HACKERRANK INTEGRATION
+----------------------------------------------------------------
+
+TEST-HR-001  VALID PUBLIC HACKERRANK PROFILE
+  Steps:
+    1. Enter a real, public HackerRank username
+    2. Click Analyse
+  Expected: HackerRank card shows badges and certifications
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-HR-002  PRIVATE HACKERRANK PROFILE
+  Steps:
+    1. Enter a username with a private profile
+  Expected: Toast + ErrorCard: "profile may be private, not
+    exist, or blocking automated requests"
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 6 — MULTI-PLATFORM ANALYSE / OVERALL SCORE
+----------------------------------------------------------------
+
+TEST-SCORE-001  ALL FOUR PLATFORMS TOGETHER
+  Steps:
+    1. Enter valid usernames for all 4 platforms
+    2. Click Analyse
+  Expected: All 4 cards attempt to load in parallel; overall
+    score gauge reflects the weighted formula (40/30/20/10)
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SCORE-002  PARTIAL FAILURE ISOLATION
+  Steps:
+    1. Enter a valid LeetCode + GitHub username, and an
+       invalid GFG + HackerRank username
+  Expected: LeetCode and GitHub cards populate normally; GFG
+    and HackerRank show error cards; overall score still
+    calculates from the available platforms
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SCORE-003  BREAKDOWN BARS MATCH GAUGE
+  Steps:
+    1. Analyse a profile, note the per-platform breakdown bars
+  Expected: Weighted sum of the 4 breakdown bars (40/30/20/10)
+    equals the number shown in the overall gauge
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 7 — SAVE PROFILE
+----------------------------------------------------------------
+
+TEST-SAVE-001  SAVE WITH VALID NAME
+  Steps:
+    1. Analyse a profile
+    2. Enter a name in the save field
+    3. Click "Save profile"
+  Expected: Toast "Profile saved"; profile appears in Saved
+    Profiles page afterwards
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SAVE-002  SAVE WITH EMPTY NAME
+  Steps:
+    1. Analyse a profile
+    2. Leave the name field empty
+    3. Click "Save profile"
+  Expected: Toast error "Enter a name to save this profile";
+    no request sent
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 8 — SAVED PROFILES PAGE
+----------------------------------------------------------------
+
+TEST-SAVED-001  SAVED PROFILES LIST LOADS
+  Steps:
+    1. Navigate to /saved after saving at least one profile
+  Expected: Grid shows saved profile cards with name, save
+    date, and mini score gauge
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SAVED-002  EMPTY STATE
+  Steps:
+    1. Navigate to /saved with zero saved profiles
+  Expected: Message "No saved profiles yet. Analyse a profile
+    from Home and save it."
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SAVED-003  VIEW SAVED PROFILE
+  Steps:
+    1. Click "View" on a saved profile card
+  Expected: Redirected to /results showing that profile's
+    saved stats
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-SAVED-004  DELETE SAVED PROFILE
+  Steps:
+    1. Click "Delete" on a saved profile card
+  Expected: Toast "Profile deleted"; card removed from the
+    grid immediately; also removed from Leaderboard
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 9 — COMPARE PAGE
+----------------------------------------------------------------
+
+TEST-CMP-001  COMPARE PAGE LOADS PROFILE LIST
+  Steps:
+    1. Navigate to /compare
+  Expected: Two dropdowns populated with all saved profiles
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-CMP-002  COMPARE WITHOUT SELECTING BOTH
+  Steps:
+    1. Select only profile 1
+    2. Click "Compare"
+  Expected: Toast error "Select two saved profiles to compare"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-CMP-003  COMPARE SAME PROFILE TWICE
+  Steps:
+    1. Select the same profile in both dropdowns
+    2. Click "Compare"
+  Expected: Toast error "Pick two different profiles"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-CMP-004  VALID COMPARISON
+  Steps:
+    1. Select two different saved profiles
+    2. Click "Compare"
+  Expected: Two gauges shown side by side, overall winner
+    named, and a category table with a trophy on the higher
+    value per row
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 10 — LEADERBOARD PAGE
+----------------------------------------------------------------
+
+TEST-LB-001  LEADERBOARD LOADS AND SORTS CORRECTLY
+  Steps:
+    1. Save 3+ profiles with different overall scores
+    2. Navigate to /leaderboard
+  Expected: Profiles listed highest score to lowest; top 3
+    show gold/silver/bronze trophy icons
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-LB-002  LEADERBOARD EMPTY STATE
+  Steps:
+    1. Navigate to /leaderboard with zero saved profiles
+  Expected: Message "No saved profiles yet."
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 11 — CACHING
+----------------------------------------------------------------
+
+TEST-CACHE-001  FIRST FETCH NOT CACHED
+  Steps:
+    1. Analyse a username never searched before
+  Expected: Card shows no "cached" label
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-CACHE-002  REPEAT FETCH WITHIN 1 HOUR IS CACHED
+  Steps:
+    1. Analyse the same username again within an hour
+  Expected: Response returns instantly; card shows "cached ·
+    <timestamp>" label
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 12 — API-LEVEL TESTS (Postman / curl)
+----------------------------------------------------------------
+
+TEST-API-001  HEALTH CHECK
+  Steps: GET /api/health
+  Expected: 200, { success: true, message: "..." }
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-API-002  ANALYSE ALL — VALID USERNAMES
+  Steps: POST /api/analyse/all with valid leetcode + github
+  Expected: 200, overallScore + breakdown + platforms object
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-API-003  SAVE PROFILE — MISSING NAME
+  Steps: POST /api/profiles/save without a "name" field
+  Expected: 400, error message "name is required"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-API-004  DELETE NON-EXISTENT PROFILE
+  Steps: DELETE /api/profiles/<random-invalid-id>
+  Expected: 404, error message "Profile not found"
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-API-005  COMPARE MISSING QUERY PARAMS
+  Steps: GET /api/stats/compare (no id1/id2)
+  Expected: 400, error message about required params
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 13 — RESPONSIVE DESIGN
+----------------------------------------------------------------
+
+TEST-RESP-001  MOBILE (375px)
+  Steps:
+    1. Set viewport to 375px width
+  Expected: All cards stack to a single column, no horizontal
+    overflow, navbar remains usable
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-RESP-002  TABLET (768px)
+  Steps:
+    1. Set viewport to 768px width
+  Expected: Platform cards show 2-column grid, layout remains
+    readable
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-RESP-003  DESKTOP (1440px)
+  Steps:
+    1. Set viewport to 1440px or use a normal window
+  Expected: Full layout with navbar links, 2-column dashboard
+    grid, comfortable spacing
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 14 — CROSS-BROWSER
+----------------------------------------------------------------
+
+TEST-BROWSER-001  CHROME
+  Steps: Run through Home → Analyse → Save → Compare →
+    Leaderboard in Chrome
+  Expected: All features work
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-BROWSER-002  FIREFOX
+  Steps: Repeat the same flow in Firefox
+  Expected: Layout and animations work correctly
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-BROWSER-003  EDGE
+  Steps: Repeat the same flow in Edge
+  Expected: All features work, no console errors
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+MODULE 15 — DEPLOYMENT / LIVE ENVIRONMENT
+----------------------------------------------------------------
+
+TEST-DEPLOY-001  BACKEND HEALTH CHECK (LIVE)
+  Steps: Visit https://<render-url>/api/health in browser
+  Expected: JSON success response
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-DEPLOY-002  FRONTEND LOADS (LIVE)
+  Steps: Visit https://<vercel-url> in browser
+  Expected: Home page renders correctly, no 404
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-DEPLOY-003  LIVE END-TO-END ANALYSE
+  Steps: On the live Vercel URL, analyse a real profile
+  Expected: Request reaches the live Render backend and
+    returns real data (allow up to 50s on first request if
+    Render's free instance was idle)
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-DEPLOY-004  LIVE SAVE + PERSISTENCE
+  Steps: Save a profile on the live site, refresh the page,
+    revisit /saved
+  Expected: Profile persists (confirms MongoDB Atlas
+    connection is working in production)
+  Result: [ ]
+  Notes: __________________________________________________
+
+TEST-DEPLOY-005  CORS CONFIGURATION
+  Steps: On the live Vercel URL, open DevTools Console while
+    using the app
+  Expected: No CORS errors (confirms CLIENT_URL env var on
+    Render matches the live Vercel domain)
+  Result: [ ]
+  Notes: __________________________________________________
+
+----------------------------------------------------------------
+BUG LOG TEMPLATE
+----------------------------------------------------------------
+
+Use this table to track any FAIL results:
+
+BUG-001
+  Test Case  : TEST-___-___
+  Description: [What went wrong]
+  Steps to Reproduce: [Steps]
+  Expected   : [What should happen]
+  Actual     : [What actually happened]
+  Priority   : P1 / P2 / P3
+  Status     : Open / Fixed / Deferred
+  Fix Applied: [What you changed to fix it]
+
+----------------------------------------------------------------
+FINAL TEST SUMMARY
+----------------------------------------------------------------
+
+Total Test Cases   : 40
+Passed  [P]        : ____
+Failed  [F]        : ____
+Skipped [S]        : ____
+Pass Rate          : ____%
+
+Sign-off: _________________ Date: _____________
+
+================================================================
+END OF MANUAL TESTING DOCUMENT
+================================================================
