@@ -16,10 +16,10 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
 ## 📸 Output
 
 <p align="center">
-  <img src="./screenshots/home-page.png" alt="Home page screenshot" width="700" />
+  <img src="./op/Home.png" alt="Home page screenshot" width="700" />
 </p>
 <p align="center">
-  <img src="./screenshots/results-dashboard.png" alt="Results dashboard screenshot" width="700" />
+  <img src="./op/Results.png" alt="Results dashboard screenshot" width="700" />
 </p>
 
 ---
@@ -27,11 +27,13 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
 ## ✨ Features
 
 ### 🏠 Home Page
-- Username inputs for LeetCode, GitHub, GeeksForGeeks, and HackerRank (CodeChef reserved for a future release)
+
+- Username inputs for LeetCode and (GitHub, GeeksForGeeks, HackerRank, CodeChef reserved for a future release)
 - Single "Analyse" button fetches all platforms in parallel
 - Recent searches saved locally and re-runnable with one click
 
 ### 📊 Results Dashboard
+
 - Animated circular **overall score gauge** (0–100), weighted 40% LeetCode / 30% GitHub / 20% GFG / 10% HackerRank
 - **LeetCode card** — Easy/Medium/Hard donut chart, acceptance rate, global rank, contest rating, top percentile
 - **GitHub card** — repo/star/follower counts, top-languages pie chart, a **real** contribution heatmap (scraped from GitHub's own public contribution calendar, not a fake approximation)
@@ -41,19 +43,23 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
 - Save any analysed profile with a custom name
 
 ### ⚖️ Compare Page
+
 - Pick two saved profiles and see a category-by-category breakdown
 - Per-category winner highlighted, plus an overall winner card
 
 ### 💾 Saved Profiles
+
 - Grid of all saved profiles with a mini score gauge
 - View or delete any saved profile
 
 ### 🏆 Leaderboard
+
 - All saved profiles ranked by overall score
 - Top 3 shown with gold/silver/bronze rank badges
 - Per-platform ranking lists (LeetCode, GitHub)
 
 ### ⚙️ Reliability
+
 - Every platform fetch is cached in-memory for 1 hour (`node-cache`) to avoid hammering source sites
 - LeetCode has two data sources — the free community stats API, with automatic fallback to LeetCode's own GraphQL endpoint if the first is unavailable
 - A single platform failing (GFG/HackerRank have no official public APIs) never blocks the other platforms' results
@@ -62,12 +68,12 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
 
 ## 🛠 Tech Stack
 
-| Layer     | Technology                                                                 |
-| --------- | --------------------------------------------------------------------------- |
-| Frontend  | React 18, Vite, Tailwind CSS, React Router 6, Recharts, Framer Motion, React Hot Toast |
-| Backend   | Node.js, Express, Mongoose, node-cache, Axios, Cheerio                     |
-| Database  | MongoDB (Atlas in production, local MongoDB in development)                |
-| Hosting   | Vercel (frontend) · Render (backend) · MongoDB Atlas (database)            |
+| Layer    | Technology                                                                             |
+| -------- | -------------------------------------------------------------------------------------- |
+| Frontend | React 18, Vite, Tailwind CSS, React Router 6, Recharts, Framer Motion, React Hot Toast |
+| Backend  | Node.js, Express, Mongoose, node-cache, Axios, Cheerio                                 |
+| Database | MongoDB (Atlas in production, local MongoDB in development)                            |
+| Hosting  | Vercel (frontend) · Render (backend) · MongoDB Atlas (database)                        |
 
 ---
 
@@ -137,6 +143,7 @@ coding-analyser/
 ## 🚀 Getting Started (Local)
 
 ### Prerequisites
+
 - Node.js 18+
 - MongoDB (local install, or a free MongoDB Atlas cluster)
 
@@ -165,36 +172,41 @@ The Vite dev server proxies `/api` requests to `http://localhost:5000`, so both 
 
 **server/**
 
-| Command         | Description                          |
-| ---------------- | -------------------------------------- |
-| `npm run dev`    | Start with nodemon (auto-restart)     |
-| `npm start`      | Start with plain node (used in prod)  |
+| Command       | Description                          |
+| ------------- | ------------------------------------ |
+| `npm run dev` | Start with nodemon (auto-restart)    |
+| `npm start`   | Start with plain node (used in prod) |
 
 **client/**
 
 | Command           | Description                          |
-| ------------------ | -------------------------------------- |
-| `npm run dev`      | Start the Vite dev server             |
-| `npm run build`    | Build an optimized production bundle |
-| `npm run preview`  | Preview the production build locally |
+| ----------------- | ------------------------------------ |
+| `npm run dev`     | Start the Vite dev server            |
+| `npm run build`   | Build an optimized production bundle |
+| `npm run preview` | Preview the production build locally |
 
 ---
 
 ## 🧩 Key Technical Concepts
 
 ### 1. Graceful degradation across 4 unreliable third-party sources
-`analyseController.getAll()` fetches all four platforms in parallel with `Promise.all`, wrapping each in a `safeFetch()` that catches errors individually — one platform failing never breaks the response for the other three.
+
+`analyseController.getAll()` fetches all 2 platforms in parallel with `Promise.all`, wrapping each in a `safeFetch()` that catches errors individually — one platform failing never breaks the response for the other three.
 
 ### 2. Two-tier LeetCode fetching
+
 `leetcodeService.js` tries the free community stats API first (with retry + backoff), and falls back to querying LeetCode's own public GraphQL endpoint directly if that's unavailable — keeping the feature reliable despite depending on an unofficial free API.
 
 ### 3. Real GitHub contribution heatmap without auth
+
 GitHub's REST API doesn't expose the contribution calendar without authenticated GraphQL access. Instead, `githubService.js` scrapes the same public HTML fragment GitHub itself renders at `/users/{username}/contributions`, reading each day's real `data-date` / `data-level` attributes.
 
 ### 4. In-memory caching
+
 `cacheMiddleware.js` wraps every platform fetch with `node-cache`, keyed by `platform:username`, with a 1-hour TTL — avoiding repeated hits to rate-limited or scrape-sensitive external sites.
 
 ### 5. Weighted score engine
+
 `scoreCalculator.js` normalizes each platform to a 0–100 sub-score, then combines them as `0.4×LeetCode + 0.3×GitHub + 0.2×GFG + 0.1×HackerRank`, and derives strengths/weaknesses/suggestions from that same breakdown.
 
 ---
