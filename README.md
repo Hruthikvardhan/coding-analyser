@@ -19,7 +19,7 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
   <img src="./op/Home.png" alt="Home page screenshot" width="700" />
 </p>
 <p align="center">
-  <img src="./op/Results.png" alt="Results dashboard screenshot" width="700" />
+  <img src="./op/Results.png" alt="Results dashboard screenshot" width="500" />
 </p>
 
 ---
