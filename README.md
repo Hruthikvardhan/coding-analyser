@@ -28,7 +28,7 @@ A full-stack **MERN** application that pulls public coding stats from **LeetCode
 
 ### 🏠 Home Page
 
-- Username inputs for LeetCode and (GitHub, GeeksForGeeks, HackerRank, CodeChef reserved for a future release)
+- Username inputs for LeetCode and GitHub (GeeksForGeeks, HackerRank, CodeChef reserved for a future release)
 - Single "Analyse" button fetches all platforms in parallel
 - Recent searches saved locally and re-runnable with one click
 
